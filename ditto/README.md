@@ -1,10 +1,10 @@
-# Querying the Plate Reader
+# Creating the Plate Reader
 
 ```bash
 curl -u ditto:ditto -X POST -H 'Content-Type: application/json' -d '{
     "title": "My Plate Reader",
     "description": "ALPR device",  
-    "definition": "@file:./plate-reader.jsonld",
+    "definition": "http://raw.githubusercontent.com/Fuel-Link/license_plate_recognition/main/ditto/plate-reader.jsonld",
     "attributes": {
         "deviceID": "plate_reader_1234"
     }
