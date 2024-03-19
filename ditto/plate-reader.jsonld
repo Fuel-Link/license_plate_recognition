@@ -1,0 +1,110 @@
+{
+    "@context": [
+      "https://www.w3.org/2022/wot/td/v1.1",
+      {
+        "om2": "http://www.ontology-of-units-of-measure.org/resource/om-2/",
+        "schema": "http://schema.org/"
+      }
+    ],
+    "@type": "tm:ThingModel",
+    "title": "Plate Reader",
+    "description": "An automated license plate reader (ALPR) device",
+    "version": {
+      "model": "1.0.0"
+    },
+    "properties": {
+      "deviceID": {
+        "title": "Device ID",
+        "type": "string",
+        "readOnly": true
+      },
+      "location": {
+        "title": "Location",
+        "type": "geo:point",
+        "description": "GPS coordinates of the mounted location (latitude, longitude)"
+      },
+      "fieldOfView": {
+        "title": "Field of View",
+        "type": "object",
+        "properties": {
+          "horizontalAngle": {
+            "title": "Horizontal Angle",
+            "type": "number",
+            "unit": "om2:Degree"
+          },
+          "verticalAngle": {
+            "title": "Vertical Angle",
+            "type": "number",
+            "unit": "om2:Degree"
+          }
+        }
+      },
+      "cameraResolution": {
+        "title": "Camera Resolution",
+        "type": "number",
+        "unit": "schema:Megapixel"
+      },
+      "imageCaptureRate": {
+        "title": "Image Capture Rate",
+        "type": "number",
+        "unit": "schema:FramePerSecond"
+      },
+      "healthStatus": {
+        "title": "Health Status",
+        "type": "string",
+        "enum": ["online", "offline", "malfunction"]
+      },
+      "lastServiced": {
+        "title": "Last Serviced",
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "actions": {
+      "captureImage": {
+        "title": "Capture Image",
+        "description": "Triggers the capture of a single image from the camera."
+      }
+    },
+    "events": {
+      "plateRecognized": {
+        "title": "Plate Recognized",
+        "description": "Event triggered when the device recognizes a license plate.",
+        "properties": {
+          "plateText": {
+            "title": "Plate Text",
+            "type": "string",
+            "description": "The recognized license plate number."
+          },
+          "timestamp": {
+            "title": "Timestamp",
+            "type": "string",
+            "format": "date-time",
+            "description": "Datetime when the plate was recognized."
+          },
+          "image": { 
+            "title": "Image (Optional)",
+            "type": "string",
+            "description": "Base64 encoded image data (optional)."
+          }
+        }
+      }
+    },
+    "metrics": {
+      "numberOfPlatesRead": {
+        "title": "Number of Plates Read",
+        "type": "number"
+      },
+      "readAccuracy": {
+        "title": "Read Accuracy",
+        "type": "number",
+        "unit": "schema:Percent"
+      },
+      "uptime": {
+        "title": "Uptime",
+        "type": "number",
+        "unit": "schema.org:Percent"
+      }
+    }
+  }
+  
