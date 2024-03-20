@@ -15,12 +15,14 @@ void MQTTHandler::connect_wifi() {
     Serial.println("");
     Serial.print("Connected to WiFi network with IP Address: ");
     Serial.println(WiFi.localIP());
+}
 
-    wifiConnected = true;
+boolean MQTTHandler::connect_to_wifi(){
+    return WiFi.isConnected();
 }
 
  void MQTTHandler::connect_mqtt(){
-    if (!wifiConnected) {
+    if (!WiFi.isConnected()) {
         Serial.println("Error: WiFi not connected");
         return;
     }
@@ -46,15 +48,18 @@ void MQTTHandler::connect_wifi() {
     mqttClient.subscribe(IMAGE_CHANNEL.c_str());
 }
 
+boolean MQTTHandler::connected_to_mqtt(){
+    return mqttClient.connected();
+}
+
 bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
-    if (!wifiConnected) {
+    if (!WiFi.isConnected()) {
         Serial.println("Error: WiFi not connected");
         return false;
     }
 
+    // Publish image in base64 (bytes) format
+    mqttClient.publish(IMAGE_CHANNEL.c_str(), data, size);
+
     return true;
-}
-
-void MQTTHandler::message_callback(char* topic, byte* payload, unsigned int length){
-
 }

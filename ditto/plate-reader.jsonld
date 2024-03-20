@@ -49,21 +49,10 @@
         "type": "number",
         "unit": "schema:FramePerSecond"
       },
-      "healthStatus": {
-        "title": "Health Status",
-        "type": "string",
-        "enum": ["online", "offline", "malfunction"]
-      },
       "lastServiced": {
         "title": "Last Serviced",
         "type": "string",
         "format": "date-time"
-      }
-    },
-    "actions": {
-      "captureImage": {
-        "title": "Capture Image",
-        "description": "Triggers the capture of a single image from the camera."
       }
     },
     "events": {
@@ -71,11 +60,6 @@
         "title": "Plate Recognized",
         "description": "Event triggered when the device recognizes a license plate.",
         "properties": {
-          "plateText": {
-            "title": "Plate Text",
-            "type": "string",
-            "description": "The recognized license plate number."
-          },
           "timestamp": {
             "title": "Timestamp",
             "type": "string",
@@ -83,7 +67,7 @@
             "description": "Datetime when the plate was recognized."
           },
           "image": { 
-            "title": "Image (Optional)",
+            "title": "Image",
             "type": "string",
             "description": "Base64 encoded image data (optional)."
           }
@@ -91,15 +75,6 @@
       }
     },
     "metrics": {
-      "numberOfPlatesRead": {
-        "title": "Number of Plates Read",
-        "type": "number"
-      },
-      "readAccuracy": {
-        "title": "Read Accuracy",
-        "type": "number",
-        "unit": "schema:Percent"
-      },
       "uptime": {
         "title": "Uptime",
         "type": "number",
