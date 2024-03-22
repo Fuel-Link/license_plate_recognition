@@ -45,7 +45,7 @@ boolean MQTTHandler::connect_to_wifi(){
     }
 
     // channels to Subscribe
-    mqttClient.subscribe(IMAGE_CHANNEL.c_str());
+    //mqttClient.subscribe(IMAGE_CHANNEL.c_str());
 }
 
 boolean MQTTHandler::connected_to_mqtt(){
@@ -58,8 +58,11 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
         return false;
     }
 
-    // Publish image in base64 (bytes) format
-    mqttClient.publish(IMAGE_CHANNEL.c_str(), data, size);
+    // Publish image in base64 (bytes) format -- data, size
+    if(!mqttClient.publish(IMAGE_CHANNEL.c_str(), data, size)){
+        Serial.println("Error: Failed to publish image to MQTT broker");
+        return false;
+    }
 
     return true;
 }

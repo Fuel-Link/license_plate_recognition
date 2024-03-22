@@ -3,20 +3,15 @@
 //! \attention for WiFi include to always be first
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiCredentials.h>
 
 /*
     ##########################################################################
     ############                  Definitions                     ############
     ##########################################################################
 */
-//! SSID of your internet enabled WiFi network
-const char WIFI_SSID[] = "YOUR_WIFI_SSID";  // CHANGE IT
-//! Password of your internet enabled WiFi network
-const char WIFI_PASSWORD[] = "YOUR_WIFI_PASSWORD";  // CHANGE IT
-//! IP address of the MQTT broker
-const char MQTT_SERVER_IP[] = "YOUR_MQTT_BROKER_IP_ADDRESS";    // CHANGE IT
-//! Port of the MQTT broker
-const int MQTT_SERVER_PORT = 1883;
+//! Attention: Please refer to the Readme file as to configure the WiFi and MQTT credentials.
+
 //! URL or Host name of the API service
 const String IMAGE_CHANNEL = "raw-image";
 

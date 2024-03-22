@@ -7,10 +7,11 @@ bool CardHandler::init_memory_card(){
         Serial.println("Error: Card initialization already performed");
         return false;
     }
-    // Mount SD card
+
     if (!SD_MMC.begin("/sdcard", true)) {
         Serial.println("Error: SD card initialization failed");
         return false;
+
     }
 
     uint8_t cardType = SD_MMC.cardType();

@@ -37,3 +37,16 @@ Read more about using header files in official GCC documentation:
 * Computed Includes
 
 https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
+
+# Wifi Credentials
+
+For increased protection, since this projects is supposed to be hosted online, wifi credentials for the device should be present in a file named `WiFiCredentials.h`. You should create this file in your directory, with the following sintax:
+
+```c++
+//! SSID of your internet WiFi
+const char WIFI_SSID[] = "YOUR_WIFI_SSID"; // CHANGE IT
+//! Password of your internet enabled WiFi network
+const char WIFI_PASSWORD[] = "YOUR_WIFI_PASSWORD"; // CHANGE IT
+//! IP address of the MQTT broker
+const char MQTT_SERVER_IP[] = "YOUR_MQTT_BROKER_IP_ADDRESS"; // CHANGE IT
+```

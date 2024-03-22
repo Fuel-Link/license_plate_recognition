@@ -8,8 +8,12 @@
     ############                  Definitions                     ############
     ##########################################################################
 */
-#define CAPTURE_RATE 1000   // in ms
-#define MAX_PHOTO_SIZE 20000    // in bytes
+#define CAPTURE_RATE 5000   // in ms
+#ifdef MQTT_MAX_PACKET_SIZE 
+    #define MAX_PHOTO_SIZE MQTT_MAX_PACKET_SIZE
+#else
+    #define MAX_PHOTO_SIZE 20000    // in bytes
+#endif
 #define MAX_PHOTO_NAME_SIZE 50
 // Comment when needed
 #define SAVE_PHOTO_SD_CARD
@@ -53,7 +57,7 @@ void MQTTHandler::message_callback(char* topic, byte* payload, unsigned int leng
 */
 
 void program_life(){
-    Serial.printf("Taking photo %d", photoCount);
+    Serial.printf("Taking photo %d", ++photoCount);
     Serial.println();
     // Capture photo
     camera_fb_t* fb = CameraHandler::take_photo();
@@ -69,14 +73,11 @@ void program_life(){
     Serial.println(fb->len);
 
     #ifdef SAVE_PHOTO_SD_CARD
-        if(CardHandler::init_memory_card()){
-            // Save photo to SD card
-            fs::FS &fs = SD_MMC;
-            char path[MAX_PHOTO_NAME_SIZE];
-            sprintf(path, "/photo_%d.jpg", photoCount);
-            CardHandler::save_data(fs, path, fb->buf, fb->len);
-            CardHandler::terminate();
-        }
+        // Save photo to SD card
+        fs::FS &fs = SD_MMC;
+        char path[MAX_PHOTO_NAME_SIZE];
+        sprintf(path, "/photo_%d.jpg", photoCount);
+        CardHandler::save_data(fs, path, fb->buf, fb->len);
     #endif
 
     // Publish photo to MQTT
@@ -92,6 +93,7 @@ void setup() {
         ;
     Serial.println("Plate Reader Terminal ready");
     Serial.println();
+    Serial.flush();
 
     // Setup WiFi
     mqtt.connect_wifi();
@@ -107,6 +109,9 @@ void setup() {
         // Setup SD Card
         while(!CardHandler::init_memory_card())
             delay(1000);
+
+        fs::FS &fs = SD_MMC;
+        CardHandler::reset_card(fs);
     #endif
 
 }
