@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FS.h"
 #include "SD_MMC.h"
 #include "esp_log.h"
 
