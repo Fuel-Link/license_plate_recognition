@@ -34,7 +34,7 @@ boolean MQTTHandler::connect_to_wifi(){
     Serial.println();
 
     while (!mqttClient.connected()) {
-        if (mqttClient.connect("ESP32Client")) {
+        if (mqttClient.connect(THING_ID)) {
             Serial.println("Connected to MQTT broker");
         } else {
             Serial.print("Failed to connect to MQTT broker, rc=");
@@ -45,7 +45,7 @@ boolean MQTTHandler::connect_to_wifi(){
     }
 
     // channels to Subscribe
-    //mqttClient.subscribe(IMAGE_CHANNEL.c_str());
+    mqttClient.subscribe(IN_TOPIC);
 }
 
 boolean MQTTHandler::connected_to_mqtt(){
@@ -58,8 +58,35 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
         return false;
     }
 
-    // Publish image in base64 (bytes) format -- data, size
-    if(!mqttClient.publish(IMAGE_CHANNEL.c_str(), data, size)){
+    if (!mqttClient.connected()) {
+        Serial.println("Error: MQTT broker not connected");
+        return false;
+    }
+
+    JsonDocument doc;
+    doc["thingId"] = THING_ID;
+    doc["image"] = data;
+    doc["size"] = size;
+
+
+    // Transform JSON Object to const char*
+    //DynamicJsonDocument jsonBuffer(doc.size() + 1);
+    //serializeJson(doc, jsonBuffer);
+
+    psram.allocate(doc.size() + 1);
+    uint8_t* ptr = psram.get_mem_ptr();
+    
+    if(serializeJson(doc, ptr) == 0){
+        Serial.println("Error: Failed to serialize JSON object");
+        return false;
+    }
+
+    boolean status = mqttClient.publish(OUT_TOPIC, ptr, psram.get_mem_size());
+
+    // clear PSRAM memory
+    psram.destroy();
+
+    if(!status){
         Serial.println("Error: Failed to publish image to MQTT broker");
         return false;
     }

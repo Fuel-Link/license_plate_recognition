@@ -4,6 +4,8 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <WiFiCredentials.h>
+#include <ArduinoJson.h>
+#include <psram.h>
 
 /*
     ##########################################################################
@@ -13,7 +15,9 @@
 //! Attention: Please refer to the Readme file as to configure the WiFi and MQTT credentials.
 
 //! URL or Host name of the API service
-const String IMAGE_CHANNEL = "raw-image";
+const char* IN_TOPIC = "ditto-tutorial/my.test:octopus";
+const char* OUT_TOPIC = "ditto-tutorial/my.test:octopus";
+const char* THING_ID = "octopus";
 
 /*
     ##########################################################################
@@ -28,6 +32,7 @@ class MQTTHandler {
     //!< MQTTHandler instance for making HTTP requests.
     WiFiClient espClient;
     PubSubClient mqttClient;
+    PSRAMHandler psram;
 
    public:
     //! \brief Constructor for MQTTHandler class.

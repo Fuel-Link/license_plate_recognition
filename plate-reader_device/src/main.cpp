@@ -41,13 +41,30 @@ void loop();
     ##########################################################################
 */
 void MQTTHandler::message_callback(char* topic, byte* payload, unsigned int length){
-    Serial.print("Message arrived [");
+    Serial.print("Message arrived in topic [");
     Serial.print(topic);
-    Serial.print("] ");
-    for (int i = 0; i < length; i++) {
+    Serial.println("]:");
+    Serial.println(" - Size: " + String(length));
+    Serial.print(" - Message: ");
+    for(int i = 0; i < length; i++) {
         Serial.print((char)payload[i]);
     }
     Serial.println();
+
+    // Allocate the JSON document
+    JsonDocument doc;
+
+    // Parse JSON object
+    DeserializationError error = deserializeJson(doc, payload, length);
+    if (error) {
+        Serial.print(F("Error: deserializeJson() failed: "));
+        Serial.println(error.f_str());
+        return;
+    }
+
+    // Extract values
+    //Serial.println(F("Response:"));
+    //Serial.println(doc["sensor"].as<const char*>());
 }
 
 /*
