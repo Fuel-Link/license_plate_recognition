@@ -14,11 +14,6 @@
 */
 //! Attention: Please refer to the Readme file as to configure the WiFi and MQTT credentials.
 
-//! URL or Host name of the API service
-const char* IN_TOPIC = "ditto-tutorial/my.test:octopus";
-const char* OUT_TOPIC = "ditto-tutorial/my.test:octopus";
-const char* THING_ID = "octopus";
-
 /*
     ##########################################################################
     ############               MQTTHandler declaration                 ############
@@ -33,6 +28,11 @@ class MQTTHandler {
     WiFiClient espClient;
     PubSubClient mqttClient;
     PSRAMHandler psram;
+
+    //! URL or Host name of the API service
+    const char* IN_TOPIC = "plate-reader/org.eclipse.ditto:8d8b3b25-8318-45bf-b3a3-549c9ecfe81b";
+    const char* OUT_TOPIC = "plate-reader/org.eclipse.ditto:8d8b3b25-8318-45bf-b3a3-549c9ecfe81b";
+    const char* THING_ID = "8d8b3b25-8318-45bf-b3a3-549c9ecfe81b";
 
    public:
     //! \brief Constructor for MQTTHandler class.

@@ -28,3 +28,22 @@ class PSRAMHandler{
     uint32_t availablePSRAM;
     uint32_t allocatedPSRAM = 0;
 };
+
+class PSRAMStream : public Stream {
+public:
+    PSRAMStream(char* buffer) : buffer(buffer), position(0) {}
+
+    size_t write(uint8_t data) {
+        buffer[position++] = data;
+        return 1;
+    }
+
+    int available() { return 0; }
+    int read() { return 0; }
+    int peek() { return 0; }
+    void flush() {}
+
+private:
+    char* buffer;
+    size_t position;
+};

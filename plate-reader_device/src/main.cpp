@@ -74,6 +74,7 @@ void MQTTHandler::message_callback(char* topic, byte* payload, unsigned int leng
 */
 
 void program_life(){
+    Serial.println("");
     Serial.printf("Taking photo %d", ++photoCount);
     Serial.println();
     // Capture photo
@@ -112,12 +113,6 @@ void setup() {
     Serial.println();
     Serial.flush();
 
-    // Setup WiFi
-    mqtt.connect_wifi();
-
-    // Setup MQTT
-    mqtt.connect_mqtt();
-
     // Setup Camera
     while(!CameraHandler::init_camera())
         delay(1000);
@@ -130,6 +125,12 @@ void setup() {
         fs::FS &fs = SD_MMC;
         CardHandler::reset_card(fs);
     #endif
+
+    // Setup WiFi
+    mqtt.connect_wifi();
+
+    // Setup MQTT
+    mqtt.connect_mqtt();
 
 }
 

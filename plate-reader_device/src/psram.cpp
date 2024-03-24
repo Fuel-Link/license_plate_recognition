@@ -33,7 +33,6 @@ bool PSRAMHandler::allocate(uint32_t amount){
     Serial.println((String)"PSRAM Size available: " + availablePSRAM);
     Serial.print("PSRAM array bytes allocated: ");
     Serial.println(allocatedPSRAM);
-    Serial.println();
     return true;
 }
 

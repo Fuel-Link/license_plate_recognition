@@ -67,16 +67,18 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
     doc["thingId"] = THING_ID;
     doc["image"] = data;
     doc["size"] = size;
-
-
+    
     // Transform JSON Object to const char*
     //DynamicJsonDocument jsonBuffer(doc.size() + 1);
     //serializeJson(doc, jsonBuffer);
+    uint32_t thingIdSize = strlen(THING_ID) + 1;
+    uint32_t sizeSize = sizeof(size);
+    uint32_t json_size = thingIdSize + sizeSize + size +1;
+    psram.allocate(json_size);
+    char* ptr = (char*)psram.get_mem_ptr();
 
-    psram.allocate(doc.size() + 1);
-    uint8_t* ptr = psram.get_mem_ptr();
-    
-    if(serializeJson(doc, ptr) == 0){
+    PSRAMStream psramStream(ptr);
+    if(serializeJson(doc, psramStream) == 0){
         Serial.println("Error: Failed to serialize JSON object");
         return false;
     }

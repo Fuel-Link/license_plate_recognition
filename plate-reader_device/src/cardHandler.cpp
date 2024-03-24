@@ -8,7 +8,8 @@ bool CardHandler::init_memory_card(){
         return false;
     }
 
-    if (!SD_MMC.begin("/sdcard", true)) {
+    // "/sdcard", true
+    if (!SD_MMC.begin()) {
         Serial.println("Error: SD card initialization failed");
         return false;
 
@@ -21,6 +22,20 @@ bool CardHandler::init_memory_card(){
         Serial.println("Error: Unknown SD card type");
         return false;
     }
+
+    Serial.print("SD_MMC Card Type: ");
+    if(cardType == CARD_MMC){
+        Serial.println("MMC");
+    } else if(cardType == CARD_SD){
+        Serial.println("SDSC");
+    } else if(cardType == CARD_SDHC){
+        Serial.println("SDHC");
+    } else {
+        Serial.println("UNKNOWN");
+    }
+
+    uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
+    Serial.printf("SD_MMC Card Size: %lluMB\n", cardSize);
 
     configDone = true;
     return true;
