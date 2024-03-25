@@ -17,7 +17,7 @@ void MQTTHandler::connect_wifi() {
     Serial.println(WiFi.localIP());
 }
 
-boolean MQTTHandler::connect_to_wifi(){
+boolean MQTTHandler::connected_to_wifi(){
     return WiFi.isConnected();
 }
 
@@ -65,12 +65,13 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
 
     JsonDocument doc;
     doc["thingId"] = THING_ID;
-    doc["image"] = data;
     doc["size"] = size;
-    
-    // Transform JSON Object to const char*
-    //DynamicJsonDocument jsonBuffer(doc.size() + 1);
-    //serializeJson(doc, jsonBuffer);
+
+    // Convert image data to base64-encoded string
+    char *imageData = (char *)malloc(size);
+    base64::encode(data, size, imageData);
+    doc["image"] = imageData;
+
     uint32_t thingIdSize = strlen(THING_ID) + 1;
     uint32_t sizeSize = sizeof(size);
     uint32_t json_size = thingIdSize + sizeSize + size +1;
@@ -83,10 +84,12 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
         return false;
     }
 
-    boolean status = mqttClient.publish(OUT_TOPIC, ptr, psram.get_mem_size());
+    boolean status = mqttClient.publish(IMAGE_TOPIC, ptr, psram.get_mem_size());
 
     // clear PSRAM memory
     psram.destroy();
+
+    free(imageData);
 
     if(!status){
         Serial.println("Error: Failed to publish image to MQTT broker");

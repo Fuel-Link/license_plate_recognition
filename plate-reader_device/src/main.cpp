@@ -8,7 +8,7 @@
     ############                  Definitions                     ############
     ##########################################################################
 */
-#define CAPTURE_RATE 1000   // in ms
+#define CAPTURE_RATE 5000   // in ms
 #ifdef MQTT_MAX_PACKET_SIZE 
     #define MAX_PHOTO_SIZE MQTT_MAX_PACKET_SIZE
 #else
@@ -136,7 +136,7 @@ void setup() {
 
 void loop() {
     // Check if connected to WiFi
-    if(!mqtt.connect_to_wifi())
+    if(!mqtt.connected_to_wifi())
         mqtt.connect_wifi();
 
     // Check if connected to MQTT

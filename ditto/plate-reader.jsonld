@@ -18,11 +18,6 @@
         "type": "string",
         "readOnly": true
       },
-      "location": {
-        "title": "Location",
-        "type": "geo:point",
-        "description": "GPS coordinates of the mounted location (latitude, longitude)"
-      },
       "fieldOfView": {
         "title": "Field of View",
         "type": "object",
@@ -48,15 +43,22 @@
         "title": "Image Capture Rate",
         "type": "number",
         "unit": "schema:FramePerSecond"
-      },
+      }
+    },
+    "features": {
       "lastServiced": {
         "title": "Last Serviced",
         "type": "string",
         "format": "date-time"
+      },
+      "location": {
+        "title": "Location",
+        "type": "geo:point",
+        "description": "GPS coordinates of the mounted location (latitude, longitude)"
       }
     },
     "events": {
-      "plateRecognized": {
+      "imageCaptured": {
         "title": "Plate Recognized",
         "description": "Event triggered when the device recognizes a license plate.",
         "properties": {
@@ -69,7 +71,7 @@
           "image": { 
             "title": "Image",
             "type": "string",
-            "description": "Base64 encoded image data (optional)."
+            "description": "Base64 encoded image data."
           }
         }
       }
@@ -78,8 +80,8 @@
       "uptime": {
         "title": "Uptime",
         "type": "number",
-        "unit": "schema.org:Percent"
+        "unit": "om2:Hour"
       }
     }
-  }
+}
   
