@@ -35,10 +35,10 @@ class MQTTHandler {
     PSRAMHandler psram;
 
     //! URL or Host name of the API service
-    const char* IN_TOPIC = "plate-reader/in/org.eclipse.ditto:9b4f7c51-56ea-4445-b76e-70a427b1d8c1";
-    const char* OUT_TOPIC = "plate-reader/out/org.eclipse.ditto:9b4f7c51-56ea-4445-b76e-70a427b1d8c1";
-    const char* IMAGE_TOPIC = "plate-reader/imageCaptured/org.eclipse.ditto:9b4f7c51-56ea-4445-b76e-70a427b1d8c1";
-    const char* THING_ID = "9b4f7c51-56ea-4445-b76e-70a427b1d8c1";
+    const char* IN_TOPIC = "plate-reader/in/org.eclipse.ditto:1b183fb5-0942-469e-8475-927d7058e201";
+    const char* OUT_TOPIC = "plate-reader/out/org.eclipse.ditto:1b183fb5-0942-469e-8475-927d7058e201";
+    const char* IMAGE_TOPIC = "plate-reader/imageCaptured/org.eclipse.ditto:1b183fb5-0942-469e-8475-927d7058e201";
+    const char* THING_ID = "1b183fb5-0942-469e-8475-927d7058e201";
 
     //! NTP configurations
     const PROGMEM char* NTP_SERVER = "pool.ntp.org";

@@ -125,10 +125,62 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
     gettimeofday (&currentTime, NULL);
     doc["timestamp"] = get_time_string(currentTime);
 
+    String auxJson;
+    if(serializeJson(doc, auxJson) == 0){
+        Serial.println("Error: Failed to serialize JSON object");
+        return false;
+    }
+
+    // remove last '}' from JSON object and add ', "image":'
+    auxJson.remove(auxJson.length() - 1);
+    auxJson += ",\"image\":";
+
+    // add the base64 encoded image data
+    
+    char *imageData = (char *) malloc(sizeof(uint8_t) * size);
+    if(imageData == NULL){
+        Serial.println("Error: Failed to allocate memory for image data");
+        return false;
+    }
+
+    base64::encode(data, size, imageData);
+    Serial.println("Image data encoded to base64");
+    auxJson.concat((const char *)imageData, size);
+    auxJson += "\"}";
+
+    Serial.println("Image data added to JSON object");
+
+    boolean status = mqttClient.publish(IMAGE_TOPIC, auxJson.c_str());
+
+    free(imageData);
+   
+    /*
     // Convert image data to base64-encoded string
     char *imageData = (char *)malloc(sizeof(char)*size);
+    if(imageData == NULL){
+        Serial.println("Error: Failed to allocate memory for image data");
+        return false;
+    }
+
+    // print available size in heap in bytes
+    Serial.print("Available heap size after allocation: ");
+    Serial.println(ESP.getFreeHeap());
+
     base64::encode(data, size, imageData);
+    Serial.println("Image data encoded to base64");
+
+    // print to the user the last 20 bytes of image data
+    Serial.print("Last 20 bytes of image data: ");
+    for(int i = size - 20; i < size; i++){
+        Serial.print(data[i], HEX);
+    }
+    Serial.println();
+
+    Serial.print("Available heap size after image transfer: ");
+    Serial.println(ESP.getFreeHeap());
+
     doc["image"] = imageData;
+    Serial.println("Image data added to JSON object");
 
     uint32_t thingIdSize = strlen(THING_ID) + 1;
     uint32_t sizeSize = sizeof(size);
@@ -144,10 +196,13 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
 
     boolean status = mqttClient.publish(IMAGE_TOPIC, ptr, psram.get_mem_size());
 
+
     // clear PSRAM memory
     psram.destroy();
 
     free(imageData);
+
+    */
 
     if(!status){
         Serial.println("Error: Failed to publish image to MQTT broker");
