@@ -72,6 +72,12 @@
             "title": "Image",
             "type": "string",
             "description": "Base64 encoded image data."
+          },
+          "size": {
+            "title": "Size",
+            "type": "number",
+            "unit": "schema:Byte",
+            "description": "Size of the image in bytes."
           }
         }
       }

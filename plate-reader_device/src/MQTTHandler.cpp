@@ -15,6 +15,9 @@ void MQTTHandler::connect_wifi() {
     Serial.println("");
     Serial.print("Connected to WiFi network with IP Address: ");
     Serial.println(WiFi.localIP());
+
+    initialize_ntp_client();
+    Serial.print("NTP client initialized with time: "); Serial.println(NTP.getTimeDateStringUs());
 }
 
 boolean MQTTHandler::connected_to_wifi(){
@@ -52,6 +55,57 @@ boolean MQTTHandler::connected_to_mqtt(){
     return mqttClient.connected();
 }
 
+long MQTTHandler::get_time_in_ms(timeval& currentTime){
+    String timeStr = NTP.getTimeStr(currentTime); // Get the time string
+    long hours = timeStr.substring(0, 2).toInt(); // Extract hours
+    long minutes = timeStr.substring(3, 5).toInt(); // Extract minutes
+    long seconds = timeStr.substring(6, 8).toInt(); // Extract seconds
+    String millisecondsStr = timeStr.substring(9, 12);
+    long milliseconds = millisecondsStr.toInt(); // Convert milliseconds string to integer
+    long totalTimeMs = (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
+    return totalTimeMs;
+}
+
+String MQTTHandler::get_time_string(timeval& currentTime){
+    char buffer[30];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S%z", localtime(&currentTime.tv_sec));
+    return String(buffer);
+}
+
+void MQTTHandler::process_sync_event (NTPEvent_t ntpEvent) {
+    switch (ntpEvent.event) {
+        case timeSyncd:
+        case partlySync:
+        case syncNotNeeded:
+        case accuracyError:
+            Serial.printf ("[NTP-event] %s", NTP.ntpEvent2str (ntpEvent));
+            Serial.println();
+            break;
+        default:
+            break;
+    }
+    syncEventTriggered = true;
+}
+
+void MQTTHandler::initialize_ntp_client(){
+    NTP.onNTPSyncEvent ([this] (NTPEvent_t event) {
+        this->ntpEvent = event;
+        this->syncEventTriggered = true;
+        process_sync_event (ntpEvent);
+    });
+
+    NTP.setTimeZone (TZ_Europe_London);
+    NTP.setInterval (600);
+    NTP.setNTPTimeout (NTP_TIMEOUT);
+    // NTP.setMinSyncAccuracy (5000);
+    // NTP.settimeSyncThreshold (3000);
+    NTP.begin (NTP_SERVER);
+
+    while(!syncEventTriggered)
+        delay(1000);
+
+}
+
 bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
     if (!WiFi.isConnected()) {
         Serial.println("Error: WiFi not connected");
@@ -67,8 +121,12 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
     doc["thingId"] = THING_ID;
     doc["size"] = size;
 
+    timeval currentTime; // 8 bytes
+    gettimeofday (&currentTime, NULL);
+    doc["timestamp"] = get_time_string(currentTime);
+
     // Convert image data to base64-encoded string
-    char *imageData = (char *)malloc(size);
+    char *imageData = (char *)malloc(sizeof(char)*size);
     base64::encode(data, size, imageData);
     doc["image"] = imageData;
 
