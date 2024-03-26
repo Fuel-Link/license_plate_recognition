@@ -1,6 +1,8 @@
 #include <CommsHandler.h>
 
-CommsHandler::CommsHandler() : mqttClient(espClient) {}
+CommsHandler::CommsHandler() 
+    : mqttClient(espClient), 
+      apiServer(API_SERVER_IP, API_SERVER_PORT) {}
 
 CommsHandler::~CommsHandler() {}
 
@@ -31,7 +33,7 @@ boolean CommsHandler::connected_to_wifi(){
     }
 
     mqttClient.setServer(MQTT_SERVER_IP, MQTT_SERVER_PORT);
-    mqttClient.setCallback(message_callback);
+    mqttClient.setCallback(mqtt_message_callback);
 
     Serial.printf("Connecting to MQTT broker at %s:%d", MQTT_SERVER_IP, MQTT_SERVER_PORT);
     Serial.println();
@@ -55,6 +57,27 @@ boolean CommsHandler::connected_to_mqtt(){
     return mqttClient.connected();
 }
 
+void CommsHandler::start_api_server(){
+    app.use(&process_api_request);
+    apiServer.begin();
+    Serial.printf("API server started on port %d", API_SERVER_PORT);
+    Serial.println();
+}
+
+void CommsHandler::listen_to_api_clients(){
+    WiFiClient client = apiServer.available();
+
+    if (client.connected()) {
+        app.process(&client);
+        client.stop();
+    }
+
+    //Serial.println("New client connected");
+    //while (!client.available()) {
+    //    delay(1);
+    //}
+}
+
 long CommsHandler::get_time_in_ms(timeval& currentTime){
     String timeStr = NTP.getTimeStr(currentTime); // Get the time string
     long hours = timeStr.substring(0, 2).toInt(); // Extract hours
@@ -70,6 +93,10 @@ String CommsHandler::get_time_string(timeval& currentTime){
     char buffer[30];
     strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S%z", localtime(&currentTime.tv_sec));
     return String(buffer);
+}
+
+int CommsHandler::get_time_year(timeval& currentTime){
+    return localtime(&currentTime.tv_sec)->tm_year + 1900;
 }
 
 void CommsHandler::process_sync_event (NTPEvent_t ntpEvent) {
@@ -94,15 +121,22 @@ void CommsHandler::initialize_ntp_client(){
         process_sync_event (ntpEvent);
     });
 
-    NTP.setTimeZone (TZ_Europe_London);
+    NTP.setTimeZone (NTP_TIMEZONE);
     NTP.setInterval (600);
     NTP.setNTPTimeout (NTP_TIMEOUT);
     // NTP.setMinSyncAccuracy (5000);
     // NTP.settimeSyncThreshold (3000);
     NTP.begin (NTP_SERVER);
 
-    while(!syncEventTriggered)
-        delay(1000);
+    // Wait for the response from NTP server
+    Serial.println("Fetching current time");
+    timeval currentTime;
+    do{
+        Serial.print(".");
+        delay(2500);
+        gettimeofday(&currentTime, NULL);
+    }while(!syncEventTriggered || get_time_year(currentTime) == 1970);
+    Serial.println();
 
 }
 
@@ -129,59 +163,7 @@ bool CommsHandler::publish_image(long imageId, String imageURL) {
         return false;
     }
 
-    boolean status = mqttClient.publish(IMAGE_TOPIC, serializedDoc.c_str());
-   
-    /*
-    // Convert image data to base64-encoded string
-    char *imageData = (char *)malloc(sizeof(char)*size);
-    if(imageData == NULL){
-        Serial.println("Error: Failed to allocate memory for image data");
-        return false;
-    }
-
-    // print available size in heap in bytes
-    Serial.print("Available heap size after allocation: ");
-    Serial.println(ESP.getFreeHeap());
-
-    base64::encode(data, size, imageData);
-    Serial.println("Image data encoded to base64");
-
-    // print to the user the last 20 bytes of image data
-    Serial.print("Last 20 bytes of image data: ");
-    for(int i = size - 20; i < size; i++){
-        Serial.print(data[i], HEX);
-    }
-    Serial.println();
-
-    Serial.print("Available heap size after image transfer: ");
-    Serial.println(ESP.getFreeHeap());
-
-    doc["image"] = imageData;
-    Serial.println("Image data added to JSON object");
-
-    uint32_t thingIdSize = strlen(THING_ID) + 1;
-    uint32_t sizeSize = sizeof(size);
-    uint32_t json_size = thingIdSize + sizeSize + size +1;
-    psram.allocate(json_size);
-    char* ptr = (char*)psram.get_mem_ptr();
-
-    PSRAMStream psramStream(ptr);
-    if(serializeJson(doc, psramStream) == 0){
-        Serial.println("Error: Failed to serialize JSON object");
-        return false;
-    }
-
-    boolean status = mqttClient.publish(IMAGE_TOPIC, ptr, psram.get_mem_size());
-
-
-    // clear PSRAM memory
-    psram.destroy();
-
-    free(imageData);
-
-    */
-
-    if(!status){
+    if(!mqttClient.publish(IMAGE_TOPIC, serializedDoc.c_str())){
         Serial.println("Error: Failed to publish image to MQTT broker");
         return false;
     }

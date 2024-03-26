@@ -87,7 +87,7 @@ File CardHandler::read_data(fs::FS& fs, char* path){
     return photoFile;
 }
 
-bool CardHandler::create_directory(fs::FS &fs, char* path){
+bool CardHandler::create_directory(fs::FS &fs, const char* path){
     if(!configDone){
         Serial.println("Error: Card initialization not performed");
         return File();

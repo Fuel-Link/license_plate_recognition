@@ -6,8 +6,8 @@
 #include <WiFiCredentials.h>
 #include <ArduinoJson.h>
 #include <psram.h>
-#include "arduino_base64.hpp"
 #include <ESPNtpClient.h>
+#include <aWOT.h>
 
 /*
     ##########################################################################
@@ -19,6 +19,11 @@
 //! NTP configurations
 #define SHOW_TIME_PERIOD 1000
 #define NTP_TIMEOUT 5000
+#define NTP_TIMEZONE TZ_Europe_London
+
+//! 
+#define API_SERVER_PORT 80
+#define API_SERVER_IP IPAddress(0,0,0,0)
 /*
     ##########################################################################
     ############               CommsHandler declaration                 ############
@@ -29,10 +34,12 @@
 */
 class CommsHandler {
    private:
-    //!< CommsHandler instance for making HTTP requests.
+    //!< 
     WiFiClient espClient;
     PubSubClient mqttClient;
     PSRAMHandler psram;
+    WiFiServer apiServer; 
+    Application app;
 
     //! URL or Host name of the API service
     const char* IN_TOPIC = "plate-reader/in/org.eclipse.ditto:1b183fb5-0942-469e-8475-927d7058e201";
@@ -70,6 +77,16 @@ class CommsHandler {
     */
     boolean connected_to_mqtt();
 
+    /*! \brief Start the API server.
+    */
+    void start_api_server();
+
+    /*! \brief Process the API request. Present in the `main.cpp` file.
+        \param request Request to be processed.
+        \param response Response to be sent.
+    */
+    static void process_api_request(Request &request, Response &response);
+
     /*! \brief Publish an image to the MQTT broker.
         \param imageId Image ID.
         \param imageURL URL of the image.
@@ -77,14 +94,18 @@ class CommsHandler {
     */
     bool publish_image(long imageId, String imageURL);
 
-    /*! \brief Callback function for MQTT messages.
+    /*  \brief Listen to requests from API clients.
+    */
+    void listen_to_api_clients();
+
+    /*! \brief Callback function for MQTT messages. Present in the `main.cpp` file.
         \param topic Topic of the message.
         \param payload Payload of the message.
         \param length Length of the message.
         \note This function should be located in the main.cpp file, as to 
             access the processing functions of other modules.
     */
-    static void message_callback(char* topic, byte* payload, unsigned int length);
+    static void mqtt_message_callback(char* topic, byte* payload, unsigned int length);
 
     /*! \brief Initialize the NTP client.
     */
@@ -107,4 +128,10 @@ class CommsHandler {
         \example "2024-03-24T12:30:00Z"
     */
     String get_time_string(timeval& currentTime);
+
+    /*! \brief Get the current time in year.
+        \param currentTime Current time.
+        \return Current year.
+    */
+    int get_time_year(timeval& currentTime);
 };
