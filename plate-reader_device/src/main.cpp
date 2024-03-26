@@ -2,6 +2,8 @@
 #include <CommsHandler.h>
 #include <cameraHandler.h>
 #include <cardHandler.h>
+#include <psram.h>
+#include <utils.h>
 
 /*
     ##########################################################################
@@ -26,14 +28,19 @@
 #define IMAGE_URL_PATH "/images"
 #endif
 
+#ifndef READ_FILE_BUFFER_SIZE
+#define READ_FILE_BUFFER_SIZE 10000
+#endif
+
 /*
     ##########################################################################
     ############                 Global Variables                 ############
     ##########################################################################
 */
 CommsHandler comms;
-
 int photoCount = 0;
+long lastImageId = 0;
+PSRAMHandler psram;
 
 /*
     ##########################################################################
@@ -76,32 +83,55 @@ void CommsHandler::mqtt_message_callback(char* topic, byte* payload, unsigned in
 }
 
 void CommsHandler::process_api_request(Request &request, Response &response){
-    Serial.println("How you doing?");
-    request.println();
-    /*uint32_t fileCount = readNumber(0);
-    uint32_t tableIndex = lookupTableIndex(req.path(), fileCount);
-    uint32_t infoIndex = 4 + (fileCount * 4) + (tableIndex * 12);
-    uint32_t calculatedHash = calculateHash(req.path());
-    uint32_t storedHash = readNumber(infoIndex);
-
-    if (calculatedHash != storedHash) {
+    // Checks the path
+    if(strcmp(request.path(), "/images") != 0){
+        response.sendStatus(400);
         return;
     }
 
-    uint32_t offset = readNumber(infoIndex + 4);
-    uint32_t length = readNumber(infoIndex + 8);
+    // let the user request the last image, without need for id
+    long imageId = lastImageId;
+    
+    // Check the query parameters
+    char id[50];
+    request.query("id", id, 50);
+    if(strlen(id) > 0)
+        imageId = atol(id);
+    
+    String strPath = get_image_path(imageId);
+    char path[strPath.length() + 1];
+    strPath.toCharArray(path, strPath.length() + 1);
 
-    dataFile.seek(offset);
-
-    res.set("Connection", "close");
-    res.beginHeaders();
-    while (length > 0) {
-        int toRead = length > READ_BUFFER_SIZE ? READ_BUFFER_SIZE : length;
-        dataFile.read(readBuffer, toRead);
-        res.write(readBuffer, toRead);
-        length = length - toRead;
+    // Check if the image exists      
+    fs::FS &fs = SD_MMC;
+    File file = CardHandler::read_data(fs, path);
+    if(file.size() == 0){
+        response.sendStatus(404); // image not present
+        return;
     }
-    res.end();*/
+
+    // Set the headers and send the response
+    response.set("Content-Type", "image/jpeg");
+    response.set("Connection", "close");
+    response.beginHeaders();
+    response.sendStatus(200);
+
+    // Allocate memory for the sending buffer
+    psram.allocate(READ_FILE_BUFFER_SIZE);
+
+    // Continuously read and send the image in the buffer
+    int bytesRead = 0;
+    while (bytesRead = file.read(psram.get_mem_ptr(), READ_FILE_BUFFER_SIZE)) {
+        response.write(psram.get_mem_ptr(), bytesRead);
+    }
+
+    // Free the memory
+    psram.destroy();
+    file.close();
+
+    // Finish response
+    response.end();
+    
 }
 
 
@@ -142,7 +172,7 @@ void program_life(){
     // Save photo to SD card
     fs::FS &fs = SD_MMC;
 
-    String strPath = String(IMAGE_SDCARD_PATH) + "/" + String(imageId) + ".jpg";
+    String strPath = get_image_path(imageId);
     
     char path[strPath.length() + 1];
     strPath.toCharArray(path, strPath.length() + 1);
@@ -155,6 +185,7 @@ void program_life(){
 
     esp_camera_fb_return(fb);
 
+    lastImageId = imageId;
     Serial.println(" - Photo saved to SD card with path: " + strPath);
 
     String url = "http://" + WiFi.localIP().toString() + ":" + String(API_SERVER_PORT) + IMAGE_URL_PATH + "?id=" + String(imageId);
@@ -201,7 +232,7 @@ void setup() {
     comms.start_api_server();
 
     // Start task of processing api requests
-    xTaskCreate(despatcher_api_fN, "API request processing function", 2048, (void*) &comms, 5, NULL);
+    //xTaskCreate(despatcher_api_fN, "API request processing function", 4096, (void*) &comms, 5, NULL);
 
 }
 
@@ -216,5 +247,12 @@ void loop() {
 
     program_life();
 
-    delay(CAPTURE_RATE);
+    // Listen to API clients and hold the program for CAPTURE_RATE ms
+    uint32_t start = millis();
+    while(millis() - start < CAPTURE_RATE){
+        comms.listen_to_api_clients();
+        delay(1);
+    }
+
+    //delay(CAPTURE_RATE);
 }

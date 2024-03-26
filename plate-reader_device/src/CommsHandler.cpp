@@ -6,6 +6,9 @@ CommsHandler::CommsHandler()
 
 CommsHandler::~CommsHandler() {}
 
+/**
+ * This function should be in a shared folder with both this and main.cpp files
+*/
 void CommsHandler::connect_wifi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.printf("Connecting to %s", WIFI_SSID);
@@ -58,7 +61,12 @@ boolean CommsHandler::connected_to_mqtt(){
 }
 
 void CommsHandler::start_api_server(){
+    // In this case, something like this app.use("/image", &image_process), could be used
+        // to route the request properly, however, since it's a simple API, we will group
+        // all the requests in a single processing function
     app.use(&process_api_request);
+
+    // Start the API server
     apiServer.begin();
     Serial.printf("API server started on port %d", API_SERVER_PORT);
     Serial.println();
@@ -129,7 +137,7 @@ void CommsHandler::initialize_ntp_client(){
     NTP.begin (NTP_SERVER);
 
     // Wait for the response from NTP server
-    Serial.println("Fetching current time");
+    Serial.print("Fetching current time");
     timeval currentTime;
     do{
         Serial.print(".");

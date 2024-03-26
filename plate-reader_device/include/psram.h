@@ -8,6 +8,8 @@
     #define MAX_PHOTO_SIZE 20000
 #endif
 
+//#define DEBUG
+
 class PSRAMHandler{
   private:
     uint8_t *PSRAMptr = nullptr;    //create a global pointer to the array to send, so all functions have access

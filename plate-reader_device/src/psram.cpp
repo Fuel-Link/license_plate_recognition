@@ -3,7 +3,9 @@
 bool PSRAMHandler::test(){
     if (psramInit()) {
         availablePSRAM = ESP.getFreePsram();
+    #ifdef DEBUG
         Serial.printf("PSRAM is available with: %d bytes", availablePSRAM);
+    #endif // DEBUG
         Serial.println();
         return true;
     } else {
@@ -19,8 +21,9 @@ bool PSRAMHandler::allocate(uint32_t amount){
         Serial.println("Not enough PSRAM");
         return false;
     }
-
+#ifdef DEBUG
     Serial.printf("Allocating %d bytes in PSRAM... ", amount);
+#endif // DEBUG
     PSRAMptr = (uint8_t *) ps_malloc(amount * sizeof(uint8_t));
 
     if(PSRAMptr == nullptr){
@@ -29,21 +32,27 @@ bool PSRAMHandler::allocate(uint32_t amount){
     }
     allocatedPSRAM = amount * sizeof(uint8_t);
     availablePSRAM = ESP.getFreePsram();
+#ifdef DEBUG
     Serial.println("Done");
     Serial.println((String)"PSRAM Size available: " + availablePSRAM);
     Serial.print("PSRAM array bytes allocated: ");
-    Serial.println(allocatedPSRAM);
+    erial.println(allocatedPSRAM);
+#endif // DEBUG
     return true;
 }
 
 bool PSRAMHandler::destroy(){
     if(allocatedPSRAM == 0) // nothing to destroy
         return true;
-
+#ifdef DEBUG
     Serial.printf("Destroying PSRAM array... ");
+#endif // DEBUG
+
     free(PSRAMptr);
 
-    Serial.println("Done");
+#ifdef DEBUG
+    Serial.println("Done");    
+#endif // DEBUG
     allocatedPSRAM = 0;
     return true;
 }

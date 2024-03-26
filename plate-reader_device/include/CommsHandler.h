@@ -5,9 +5,9 @@
 #include <PubSubClient.h>
 #include <WiFiCredentials.h>
 #include <ArduinoJson.h>
-#include <psram.h>
 #include <ESPNtpClient.h>
 #include <aWOT.h>
+#include <utils.h>
 
 /*
     ##########################################################################
@@ -34,10 +34,9 @@
 */
 class CommsHandler {
    private:
-    //!< 
+    //!< WiFi and MQTT clients
     WiFiClient espClient;
     PubSubClient mqttClient;
-    PSRAMHandler psram;
     WiFiServer apiServer; 
     Application app;
 
