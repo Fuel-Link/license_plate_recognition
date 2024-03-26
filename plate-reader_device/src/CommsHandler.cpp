@@ -148,7 +148,7 @@ void CommsHandler::initialize_ntp_client(){
 
 }
 
-bool CommsHandler::publish_image(long imageId, String imageURL) {
+bool CommsHandler::publish_image(timeval& imageTime, String imageURL) {
     if (!WiFi.isConnected()) {
         Serial.println("Error: WiFi not connected");
         return false;
@@ -161,8 +161,8 @@ bool CommsHandler::publish_image(long imageId, String imageURL) {
 
     JsonDocument doc;
     doc["thingId"] = THING_ID;
-    doc["timestamp"] = imageId;
-    doc["imageId"] = imageId;
+    doc["timestamp"] = get_time_string(imageTime);
+    doc["imageId"] = get_time_in_ms(imageTime);
     doc["url"] = imageURL;
 
     String serializedDoc;

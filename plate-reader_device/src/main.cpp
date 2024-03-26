@@ -29,7 +29,7 @@
 #endif
 
 #ifndef READ_FILE_BUFFER_SIZE
-#define READ_FILE_BUFFER_SIZE 10000
+#define READ_FILE_BUFFER_SIZE 40000
 #endif
 
 /*
@@ -113,17 +113,21 @@ void CommsHandler::process_api_request(Request &request, Response &response){
     // Set the headers and send the response
     response.set("Content-Type", "image/jpeg");
     response.set("Connection", "close");
-    response.beginHeaders();
-    response.sendStatus(200);
 
     // Allocate memory for the sending buffer
     psram.allocate(READ_FILE_BUFFER_SIZE);
 
     // Continuously read and send the image in the buffer
     int bytesRead = 0;
-    while (bytesRead = file.read(psram.get_mem_ptr(), READ_FILE_BUFFER_SIZE)) {
+    int bytesCounter = 0;
+    do{
+        bytesRead = file.readBytes((char*) psram.get_mem_ptr(), READ_FILE_BUFFER_SIZE);
         response.write(psram.get_mem_ptr(), bytesRead);
-    }
+        bytesCounter += bytesRead;
+    }while (bytesRead > 0);
+    
+
+    Serial.println("Image sent with size: " + String(bytesCounter) + " bytes");
 
     // Free the memory
     psram.destroy();
@@ -131,9 +135,7 @@ void CommsHandler::process_api_request(Request &request, Response &response){
 
     // Finish response
     response.end();
-    
 }
-
 
 /*
     ##########################################################################
@@ -192,7 +194,7 @@ void program_life(){
     Serial.println(" - Image being served in URL: " + url);
 
     // Publish photo to MQTT
-    comms.publish_image(imageId, url);
+    comms.publish_image(currentTime, url);
 
     Serial.println(" - Photo and info published to MQTT");
     Serial.println();

@@ -91,7 +91,7 @@ class CommsHandler {
         \param imageURL URL of the image.
         \return True if the image was published, false otherwise.
     */
-    bool publish_image(long imageId, String imageURL);
+    bool publish_image(timeval& imageTime, String imageURL);
 
     /*  \brief Listen to requests from API clients.
     */
