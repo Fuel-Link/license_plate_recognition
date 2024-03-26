@@ -68,16 +68,15 @@
             "format": "date-time",
             "description": "Datetime when the plate was recognized."
           },
-          "image": { 
-            "title": "Image",
+          "imageId": {
+            "title": "Image ID",
             "type": "string",
-            "description": "Base64 encoded image data."
+            "description": "Unique identifier of the captured image."
           },
-          "size": {
-            "title": "Size",
-            "type": "number",
-            "unit": "schema:Byte",
-            "description": "Size of the image in bytes."
+          "url": {
+            "title": "Image URL",
+            "type": "string",
+            "description": "URL of the captured image."
           }
         }
       }

@@ -21,15 +21,15 @@
 #define NTP_TIMEOUT 5000
 /*
     ##########################################################################
-    ############               MQTTHandler declaration                 ############
+    ############               CommsHandler declaration                 ############
     ##########################################################################
 */
-/*! \class MQTTHandler
-    \brief Handles interactions with the MQTTHandler.
+/*! \class CommsHandler
+    \brief Handles interactions with the CommsHandler.
 */
-class MQTTHandler {
+class CommsHandler {
    private:
-    //!< MQTTHandler instance for making HTTP requests.
+    //!< CommsHandler instance for making HTTP requests.
     WiFiClient espClient;
     PubSubClient mqttClient;
     PSRAMHandler psram;
@@ -45,25 +45,12 @@ class MQTTHandler {
     boolean syncEventTriggered = false; // True if a time even has been triggered
     NTPEvent_t ntpEvent; // Last triggered event
 
-    /*! \brief Get the current time in milliseconds.
-        \param currentTime Current time.
-        \return Current time in milliseconds.
-    */
-    long get_time_in_ms(timeval& currentTime);
-
-    /*! \brief Get the current time in string format.
-        \param currentTime Current time.
-        \return Current time in string format, according to ISO 8601.
-        \example "2024-03-24T12:30:00Z"
-    */
-    String get_time_string(timeval& currentTime);
-
    public:
-    //! \brief Constructor for MQTTHandler class.
-    MQTTHandler();
+    //! \brief Constructor for CommsHandler class.
+    CommsHandler();
 
-    //! \brief Destructor for MQTTHandler class.
-    ~MQTTHandler();
+    //! \brief Destructor for CommsHandler class.
+    ~CommsHandler();
 
     /*! \brief Connect to the WiFi network.
     */
@@ -83,12 +70,12 @@ class MQTTHandler {
     */
     boolean connected_to_mqtt();
 
-    /*! \brief publish an image to a channel.
-        \param path Path to the image to be posted.
-        \param size Size of the image to be posted.        
-        \return True if post is successful, false otherwise.
+    /*! \brief Publish an image to the MQTT broker.
+        \param imageId Image ID.
+        \param imageURL URL of the image.
+        \return True if the image was published, false otherwise.
     */
-    bool publish_image(uint8_t *data, uint32_t size);
+    bool publish_image(long imageId, String imageURL);
 
     /*! \brief Callback function for MQTT messages.
         \param topic Topic of the message.
@@ -107,4 +94,17 @@ class MQTTHandler {
         \param ntpEvent NTP event to be processed.
     */
     void process_sync_event (NTPEvent_t ntpEvent);
+
+    /*! \brief Get the current time in milliseconds.
+        \param currentTime Current time.
+        \return Current time in milliseconds.
+    */
+    long get_time_in_ms(timeval& currentTime);
+
+    /*! \brief Get the current time in string format.
+        \param currentTime Current time.
+        \return Current time in string format, according to ISO 8601.
+        \example "2024-03-24T12:30:00Z"
+    */
+    String get_time_string(timeval& currentTime);
 };

@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <MQTTHandler.h>
+#include <CommsHandler.h>
 #include <cameraHandler.h>
 #include <cardHandler.h>
 
@@ -14,16 +14,14 @@
 #else
     #define MAX_PHOTO_SIZE 20000    // in bytes
 #endif
-#define MAX_PHOTO_NAME_SIZE 50
-// Comment when needed
-#define SAVE_PHOTO_SD_CARD
+#define IMAGE_CARD_PATH "/images"
 
 /*
     ##########################################################################
     ############                 Global Variables                 ############
     ##########################################################################
 */
-MQTTHandler mqtt;
+CommsHandler comms;
 
 int photoCount = 0;
 
@@ -40,7 +38,7 @@ void loop();
     ############                   Gated Code                     ############
     ##########################################################################
 */
-void MQTTHandler::message_callback(char* topic, byte* payload, unsigned int length){
+void CommsHandler::message_callback(char* topic, byte* payload, unsigned int length){
     Serial.print("Message arrived in topic [");
     Serial.print(topic);
     Serial.println("]:");
@@ -77,6 +75,7 @@ void program_life(){
     Serial.println("");
     Serial.printf("Taking photo %d", ++photoCount);
     Serial.println();
+
     // Capture photo
     camera_fb_t* fb = CameraHandler::take_photo();
 
@@ -87,19 +86,23 @@ void program_life(){
         return;
     }
 
-    Serial.print("Photo taken with size of: ");
-    Serial.println(fb->len);
+    // Get Image ID (timestamp)
+    timeval currentTime;    // 8 bytes
+    gettimeofday(&currentTime, NULL);
+    long imageId = comms.get_time_in_ms(currentTime);
 
-    #ifdef SAVE_PHOTO_SD_CARD
-        // Save photo to SD card
-        fs::FS &fs = SD_MMC;
-        char path[MAX_PHOTO_NAME_SIZE];
-        sprintf(path, "/photo_%d.jpg", photoCount);
-        CardHandler::save_data(fs, path, fb->buf, fb->len);
-    #endif
+    // Save photo to SD card
+    fs::FS &fs = SD_MMC;
+
+    String tempPath = IMAGE_CARD_PATH + '/' + String(imageId) + ".jpg";
+    char path[tempPath.length() + 1];
+    tempPath.toCharArray(path, tempPath.length() + 1);
+
+    sprintf(path, "/photo_%d.jpg", photoCount);
+    CardHandler::save_data(fs, path, fb->buf, fb->len);
 
     // Publish photo to MQTT
-    mqtt.publish_image(fb->buf, fb->len);
+    comms.publish_image(imageId, tempPath);
 
     esp_camera_fb_return(fb);
 }
@@ -117,31 +120,33 @@ void setup() {
     while(!CameraHandler::init_camera())
         delay(1000);
 
-    #ifdef SAVE_PHOTO_SD_CARD
-        // Setup SD Card
-        while(!CardHandler::init_memory_card())
-            delay(1000);
+    // Setup SD Card
+    while(!CardHandler::init_memory_card())
+        delay(1000);
 
-        fs::FS &fs = SD_MMC;
-        CardHandler::reset_card(fs);
-    #endif
+    // Reset SD Card
+    fs::FS &fs = SD_MMC;
+    CardHandler::reset_card(fs);
+
+    // Create image directory
+    CardHandler::create_directory(fs, IMAGE_CARD_PATH);
 
     // Setup WiFi
-    mqtt.connect_wifi();
+    comms.connect_wifi();
 
     // Setup MQTT
-    mqtt.connect_mqtt();
+    comms.connect_mqtt();
 
 }
 
 void loop() {
     // Check if connected to WiFi
-    if(!mqtt.connected_to_wifi())
-        mqtt.connect_wifi();
+    if(!comms.connected_to_wifi())
+        comms.connect_wifi();
 
     // Check if connected to MQTT
-    if(!mqtt.connected_to_mqtt())
-        mqtt.connect_mqtt();
+    if(!comms.connected_to_mqtt())
+        comms.connect_mqtt();
 
     program_life();
 

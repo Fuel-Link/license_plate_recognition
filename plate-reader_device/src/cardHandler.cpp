@@ -81,10 +81,23 @@ File CardHandler::read_data(fs::FS& fs, char* path){
 
     File photoFile = SD_MMC.open(path);
     if (!photoFile) {
-        Serial.println("Failed to open file for reading");
+        Serial.println("Error: Failed to open file for reading");
         return File();
     }
     return photoFile;
+}
+
+bool CardHandler::create_directory(fs::FS &fs, char* path){
+    if(!configDone){
+        Serial.println("Error: Card initialization not performed");
+        return File();
+    }
+
+    if(!fs.mkdir(path)){
+        Serial.println("Error: Creation of directory " + String(path) + " failed");
+        return false;
+    }
+    return true;
 }
 
 bool CardHandler::reset_card(fs::FS& fs){

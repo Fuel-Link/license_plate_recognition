@@ -1,10 +1,10 @@
-#include <MQTTHandler.h>
+#include <CommsHandler.h>
 
-MQTTHandler::MQTTHandler() : mqttClient(espClient) {}
+CommsHandler::CommsHandler() : mqttClient(espClient) {}
 
-MQTTHandler::~MQTTHandler() {}
+CommsHandler::~CommsHandler() {}
 
-void MQTTHandler::connect_wifi() {
+void CommsHandler::connect_wifi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.printf("Connecting to %s", WIFI_SSID);
     Serial.println();
@@ -20,11 +20,11 @@ void MQTTHandler::connect_wifi() {
     Serial.print("NTP client initialized with time: "); Serial.println(NTP.getTimeDateStringUs());
 }
 
-boolean MQTTHandler::connected_to_wifi(){
+boolean CommsHandler::connected_to_wifi(){
     return WiFi.isConnected();
 }
 
- void MQTTHandler::connect_mqtt(){
+ void CommsHandler::connect_mqtt(){
     if (!WiFi.isConnected()) {
         Serial.println("Error: WiFi not connected");
         return;
@@ -51,11 +51,11 @@ boolean MQTTHandler::connected_to_wifi(){
     mqttClient.subscribe(IN_TOPIC);
 }
 
-boolean MQTTHandler::connected_to_mqtt(){
+boolean CommsHandler::connected_to_mqtt(){
     return mqttClient.connected();
 }
 
-long MQTTHandler::get_time_in_ms(timeval& currentTime){
+long CommsHandler::get_time_in_ms(timeval& currentTime){
     String timeStr = NTP.getTimeStr(currentTime); // Get the time string
     long hours = timeStr.substring(0, 2).toInt(); // Extract hours
     long minutes = timeStr.substring(3, 5).toInt(); // Extract minutes
@@ -66,13 +66,13 @@ long MQTTHandler::get_time_in_ms(timeval& currentTime){
     return totalTimeMs;
 }
 
-String MQTTHandler::get_time_string(timeval& currentTime){
+String CommsHandler::get_time_string(timeval& currentTime){
     char buffer[30];
     strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S%z", localtime(&currentTime.tv_sec));
     return String(buffer);
 }
 
-void MQTTHandler::process_sync_event (NTPEvent_t ntpEvent) {
+void CommsHandler::process_sync_event (NTPEvent_t ntpEvent) {
     switch (ntpEvent.event) {
         case timeSyncd:
         case partlySync:
@@ -87,7 +87,7 @@ void MQTTHandler::process_sync_event (NTPEvent_t ntpEvent) {
     syncEventTriggered = true;
 }
 
-void MQTTHandler::initialize_ntp_client(){
+void CommsHandler::initialize_ntp_client(){
     NTP.onNTPSyncEvent ([this] (NTPEvent_t event) {
         this->ntpEvent = event;
         this->syncEventTriggered = true;
@@ -106,7 +106,7 @@ void MQTTHandler::initialize_ntp_client(){
 
 }
 
-bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
+bool CommsHandler::publish_image(long imageId, String imageURL) {
     if (!WiFi.isConnected()) {
         Serial.println("Error: WiFi not connected");
         return false;
@@ -119,40 +119,17 @@ bool MQTTHandler::publish_image(uint8_t *data, uint32_t size) {
 
     JsonDocument doc;
     doc["thingId"] = THING_ID;
-    doc["size"] = size;
+    doc["timestamp"] = imageId;
+    doc["imageId"] = imageId;
+    doc["url"] = imageURL;
 
-    timeval currentTime; // 8 bytes
-    gettimeofday (&currentTime, NULL);
-    doc["timestamp"] = get_time_string(currentTime);
-
-    String auxJson;
-    if(serializeJson(doc, auxJson) == 0){
+    String serializedDoc;
+    if(serializeJson(doc, serializedDoc) == 0){
         Serial.println("Error: Failed to serialize JSON object");
         return false;
     }
 
-    // remove last '}' from JSON object and add ', "image":'
-    auxJson.remove(auxJson.length() - 1);
-    auxJson += ",\"image\":";
-
-    // add the base64 encoded image data
-    
-    char *imageData = (char *) malloc(sizeof(uint8_t) * size);
-    if(imageData == NULL){
-        Serial.println("Error: Failed to allocate memory for image data");
-        return false;
-    }
-
-    base64::encode(data, size, imageData);
-    Serial.println("Image data encoded to base64");
-    auxJson.concat((const char *)imageData, size);
-    auxJson += "\"}";
-
-    Serial.println("Image data added to JSON object");
-
-    boolean status = mqttClient.publish(IMAGE_TOPIC, auxJson.c_str());
-
-    free(imageData);
+    boolean status = mqttClient.publish(IMAGE_TOPIC, serializedDoc.c_str());
    
     /*
     // Convert image data to base64-encoded string
