@@ -50,3 +50,9 @@ const char WIFI_PASSWORD[] = "YOUR_WIFI_PASSWORD"; // CHANGE IT
 //! IP address of the MQTT broker
 const char MQTT_SERVER_IP[] = "YOUR_MQTT_BROKER_IP_ADDRESS"; // CHANGE IT
 ```
+
+# Resources
+
+* https://techtutorialsx.com/2017/05/28/esp8266-adding-swagger-ui-to-rest-api/
+* https://awot.net/en/3x/api.html#req
+* https://registry.platformio.org/libraries/lasselukkari/aWOT/examples/

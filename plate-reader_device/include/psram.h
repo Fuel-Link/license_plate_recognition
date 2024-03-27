@@ -22,6 +22,7 @@ class PSRAMHandler{
     bool allocate(uint32_t amount);
     bool destroy();
     bool store(uint8_t *data, uint32_t size);
+    bool store(const char * data, size_t size);
     bool reset();
 
     uint8_t* get_mem_ptr(uint32_t offset = 0){ return PSRAMptr + offset; };

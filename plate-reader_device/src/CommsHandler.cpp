@@ -12,17 +12,16 @@ CommsHandler::~CommsHandler() {}
 void CommsHandler::connect_wifi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     Serial.printf("Connecting to %s", WIFI_SSID);
-    Serial.println();
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
     }
     Serial.println("");
-    Serial.print("Connected to WiFi network with IP Address: ");
+    Serial.print(" - Connected to WiFi network with IP Address: ");
     Serial.println(WiFi.localIP());
+    Serial.println();
 
     initialize_ntp_client();
-    Serial.print("NTP client initialized with time: "); Serial.println(NTP.getTimeDateStringUs());
 }
 
 boolean CommsHandler::connected_to_wifi(){
@@ -42,15 +41,16 @@ boolean CommsHandler::connected_to_wifi(){
     Serial.println();
 
     while (!mqttClient.connected()) {
-        if (mqttClient.connect(THING_ID)) {
-            Serial.println("Connected to MQTT broker");
-        } else {
+        if (!mqttClient.connect(THING_ID)) {
             Serial.print("Failed to connect to MQTT broker, rc=");
             Serial.print(mqttClient.state());
             Serial.println(" Retrying in 5 seconds");
             delay(5000);
         }
     }
+
+    Serial.println(" - Connected to MQTT broker");
+    Serial.println();
 
     // channels to Subscribe
     mqttClient.subscribe(IN_TOPIC);
@@ -68,7 +68,11 @@ void CommsHandler::start_api_server(){
 
     // Start the API server
     apiServer.begin();
-    Serial.printf("API server started on port %d", API_SERVER_PORT);
+    Serial.printf("API server started on port %d, serving WebHooks: ", API_SERVER_PORT);
+    Serial.println();
+    Serial.println(" - http://" + WiFi.localIP().toString() + ":" + String(API_SERVER_PORT) + String(IMAGE_URL_PATH));
+    Serial.println(" - http://" + WiFi.localIP().toString() + ":" + String(API_SERVER_PORT) + String(JSON_URL_PATH));
+    Serial.println(" - http://" + WiFi.localIP().toString() + ":" + String(API_SERVER_PORT) + String(DOCS_URL_PATH));
     Serial.println();
 }
 
@@ -132,13 +136,16 @@ void CommsHandler::initialize_ntp_client(){
     NTP.begin (NTP_SERVER);
 
     // Wait for the response from NTP server
-    Serial.print("Fetching current time");
+    Serial.println("Initializing NTP client: ");
+    Serial.print(" - Fetching current time");
     timeval currentTime;
     do{
         Serial.print(".");
         delay(2500);
         gettimeofday(&currentTime, NULL);
     }while(!syncEventTriggered || get_time_year(currentTime) == 1970);
+
+    Serial.print(" - NTP client initialized with time: "); Serial.println(NTP.getTimeDateStringUs());
     Serial.println();
 
 }

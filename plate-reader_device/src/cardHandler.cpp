@@ -8,6 +8,8 @@ bool CardHandler::init_memory_card(){
         return false;
     }
 
+    Serial.println("Initializing SD card: ");
+
     // "/sdcard", true
     if (!SD_MMC.begin()) {
         Serial.println("Error: SD card initialization failed");
@@ -23,7 +25,7 @@ bool CardHandler::init_memory_card(){
         return false;
     }
 
-    Serial.print("SD_MMC Card Type: ");
+    Serial.print(" - SD_MMC Card Type: ");
     if(cardType == CARD_MMC){
         Serial.println("MMC");
     } else if(cardType == CARD_SD){
@@ -35,7 +37,7 @@ bool CardHandler::init_memory_card(){
     }
 
     uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
-    Serial.printf("SD_MMC Card Size: %lluMB\n", cardSize);
+    Serial.printf(" - SD_MMC Card Size: %lluMB\n", cardSize);
 
     configDone = true;
     return true;
@@ -93,10 +95,13 @@ bool CardHandler::create_directory(fs::FS &fs, const char* path){
         return File();
     }
 
+    Serial.println(" - Creating directory: " + String(path));
+
     if(!fs.mkdir(path)){
         Serial.println("Error: Creation of directory " + String(path) + " failed");
         return false;
     }
+    Serial.println();
     return true;
 }
 
@@ -105,6 +110,8 @@ bool CardHandler::reset_card(fs::FS& fs){
         Serial.println("Error: Card initialization not performed");
         return false;
     }
+
+    Serial.println(" - Resetting card:"); 
 
     File root = fs.open("/");
     File file = root.openNextFile();
@@ -115,7 +122,7 @@ bool CardHandler::reset_card(fs::FS& fs){
             continue;
         }
 
-        Serial.print("Deleting file: ");
+        Serial.print("  - Deleting file: ");
         Serial.println(file.name());
 
         // As per the source code of the SD_MMC library,
@@ -128,7 +135,6 @@ bool CardHandler::reset_card(fs::FS& fs){
         file.close();
         file = root.openNextFile();
     }
-    Serial.println();
     return true;
 }
 

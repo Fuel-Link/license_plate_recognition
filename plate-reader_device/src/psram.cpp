@@ -5,8 +5,8 @@ bool PSRAMHandler::test(){
         availablePSRAM = ESP.getFreePsram();
     #ifdef DEBUG
         Serial.printf("PSRAM is available with: %d bytes", availablePSRAM);
-    #endif // DEBUG
         Serial.println();
+    #endif // DEBUG
         return true;
     } else {
         Serial.println("PSRAM not available");
@@ -72,6 +72,24 @@ bool PSRAMHandler::store(uint8_t *data, uint32_t size){
     occupiedPSRAM += size;
 
     return true;
+}
+
+bool PSRAMHandler::store(const char * data, size_t size){
+    if(allocatedPSRAM == 0){
+        Serial.println("Error: PSRAM not allocated");
+        return false;
+    }
+    if ((occupiedPSRAM + size) > allocatedPSRAM) {
+        Serial.println("Error: Not enough space in the allocated PSRAM");
+        return false;
+    }
+    
+    memcpy(PSRAMptr + occupiedPSRAM, data, size);
+
+    occupiedPSRAM += size;
+
+    return true;
+
 }
 
 bool PSRAMHandler::reset(){

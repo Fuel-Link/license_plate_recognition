@@ -45,7 +45,7 @@ class CommsHandler {
     const char* OUT_TOPIC = "plate-reader/out/org.eclipse.ditto:1b183fb5-0942-469e-8475-927d7058e201";
     const char* IMAGE_TOPIC = "plate-reader/imageCaptured/org.eclipse.ditto:1b183fb5-0942-469e-8475-927d7058e201";
     const char* THING_ID = "1b183fb5-0942-469e-8475-927d7058e201";
-
+    
     //! NTP configurations
     const PROGMEM char* NTP_SERVER = "pool.ntp.org";
     boolean syncEventTriggered = false; // True if a time even has been triggered
