@@ -101,8 +101,131 @@ bool CardHandler::create_directory(fs::FS &fs, const char* path){
         Serial.println("Error: Creation of directory " + String(path) + " failed");
         return false;
     }
+
     Serial.println();
     return true;
+}
+
+bool CardHandler::delete_file(fs::FS &fs, const char * path){
+    if(!configDone){
+        Serial.println("Error: Card initialization not performed");
+        return File();
+    }
+
+    if(!fs.remove(path)){
+        Serial.println("Error: Deletion of file " + String(path) + " failed");
+        return false;
+    }   
+    return true;
+}
+
+bool CardHandler::rename_file(fs::FS &fs, const char * currentPath, const char * renamedPath){
+    if(!configDone){
+        Serial.println("Error: Card initialization not performed");
+        return File();
+    }
+
+    if(!fs.rename(currentPath, renamedPath)){
+        Serial.println("Error: Renaming of file " + String(currentPath) + " to " + String(renamedPath) + " failed");
+        return false;
+    }   
+    return true;
+}
+
+bool CardHandler::remove_directory(fs::FS &fs, const char * path){
+    if(!configDone){
+        Serial.println("Error: Card initialization not performed");
+        return File();
+    }
+
+    if(!fs.rmdir(path)){
+        Serial.println("Error: Deletion of directory " + String(path) + " failed");
+        return false;
+    }   
+    return true;
+}
+
+void CardHandler::print_directory(fs::FS &fs, const char * dirname, uint8_t levels){
+    if(!configDone){
+        Serial.println("Error: Card initialization not performed");
+        return;
+    }
+
+    Serial.printf("Listing directory: %s\n", dirname);
+
+    File root = fs.open(dirname);
+    if(!root){
+        Serial.println("Failed to open directory");
+        return;
+    }
+    if(!root.isDirectory()){
+        Serial.println("Not a directory");
+        return;
+    }
+
+    File file = root.openNextFile();
+    while(file){
+        if(file.isDirectory()){
+            Serial.print("  DIR : ");
+            Serial.println(file.name());
+            if(levels){
+                print_directory(fs, file.name(), levels -1);
+            }
+        } else {
+            Serial.print("  FILE: ");
+            Serial.print(file.name());
+            Serial.print("  SIZE: ");
+            Serial.println(file.size());
+        }
+        file = root.openNextFile();
+    }
+}
+
+void CardHandler::test_file_IO(fs::FS &fs, const char * path){
+    if(!configDone){
+        Serial.println("Error: Card initialization not performed");
+        return;
+    }
+
+    File file = fs.open(path);
+    static uint8_t buf[512];
+    size_t len = 0;
+    uint32_t start = millis();
+    uint32_t end = start;
+    if(file){
+        len = file.size();
+        size_t flen = len;
+        start = millis();
+        while(len){
+            size_t toRead = len;
+            if(toRead > 512){
+                toRead = 512;
+            }
+            file.read(buf, toRead);
+            len -= toRead;
+        }
+        end = millis() - start;
+        Serial.printf("%u bytes read for %u ms\n", flen, end);
+        file.close();
+    } else {
+        Serial.println("Failed to open file for reading");
+    }
+
+
+    file = fs.open(path, FILE_WRITE);
+    if(!file){
+        Serial.println("Failed to open file for writing");
+        return;
+    }
+
+    size_t i;
+    start = millis();
+    for(i=0; i<2048; i++){
+        file.write(buf, 512);
+    }
+    end = millis() - start;
+    Serial.printf("%u bytes written for %u ms\n", 2048 * 512, end);
+    file.close();
 }
 
 bool CardHandler::reset_card(fs::FS& fs){

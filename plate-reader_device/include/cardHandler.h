@@ -1,5 +1,7 @@
 #pragma once
 
+//! Disclaimer - Some functions were made with help of SDMMC_Tests.ino from the ESP32 library
+
 #include "FS.h"
 #include "SD_MMC.h"
 #include "esp_log.h"
@@ -59,6 +61,46 @@ namespace CardHandler{
      *      \return bool - `true` if the file was removed successfully, `false` otherwise
      */
     bool reset_card(fs::FS& fs);
+
+    /**
+     *  Remove a file from the memory card
+     *      \param fs: the file system
+     *      \param path: the path to the file
+     *      \return bool - `true` if the file was removed successfully, `false` otherwise
+    */
+    bool delete_file(fs::FS &fs, const char * path);
+
+    /**
+     *  Rename a file in the memory card
+     *      \param fs: the file system
+     *      \param currentPath: the current path to the file
+     *      \param renamedPath: the new path to the file
+     *      \return bool - `true` if the file was renamed successfully, `false` otherwise
+    */
+    bool rename_file(fs::FS &fs, const char * currentPath, const char * renamedPath);
+
+    /**
+     *  Remove a directory from the memory card
+     *      \param fs: the file system
+     *      \param path: the path to the directory
+     *      \return bool - `true` if the directory was removed successfully, `false` otherwise
+    */
+    bool remove_directory(fs::FS &fs, const char * path);
+
+    /**
+     *  Print the file names in a directory
+     *      \param fs: the file system
+     *      \param dirname: the path to the directory
+     *      \param levels: the number of levels to list
+    */
+    void print_directory(fs::FS &fs, const char * dirname, uint8_t levels);
+
+    /**
+     *  Test the file I/O (speed of writing and reading of files)
+     *      \param fs: the file system
+     *      \param path: the path to the file
+    */
+    void test_file_IO(fs::FS &fs, const char * path);
 
     /**
      *  Terminate the memory card
