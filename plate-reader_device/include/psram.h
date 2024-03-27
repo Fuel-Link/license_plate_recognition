@@ -25,7 +25,7 @@ class PSRAMHandler{
 
     /*
      *  Allocate PSRAM memory
-     *      @param amount: amount of memory to allocate
+     *      \param amount: amount of memory to allocate
     */
     bool allocate(uint32_t amount);
 
@@ -36,15 +36,15 @@ class PSRAMHandler{
 
     /*
      *  Store data in PSRAM
-     *      @param data: data to store
-     *      @param size: size of the data
+     *      \param data: data to store
+     *      \param size: size of the data
     */
     bool store(uint8_t *data, uint32_t size);
 
      /*
      *  Store data in PSRAM
-     *      @param data: data to store
-     *      @param size: size of the data
+     *      \param data: data to store
+     *      \param size: size of the data
     */
     bool store(const char * data, size_t size);
 
@@ -55,7 +55,7 @@ class PSRAMHandler{
 
     /*
      *  Get the pointer to the PSRAM memory
-     *      @param offset: offset to the memory
+     *      \param offset: offset to the memory
     */
     uint8_t* get_mem_ptr(uint32_t offset = 0){ return PSRAMptr + offset; };
 
