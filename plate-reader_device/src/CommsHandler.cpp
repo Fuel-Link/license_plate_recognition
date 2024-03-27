@@ -79,11 +79,6 @@ void CommsHandler::listen_to_api_clients(){
         app.process(&client);
         client.stop();
     }
-
-    //Serial.println("New client connected");
-    //while (!client.available()) {
-    //    delay(1);
-    //}
 }
 
 long CommsHandler::get_time_in_ms(timeval& currentTime){

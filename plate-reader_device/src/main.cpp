@@ -119,15 +119,10 @@ void CommsHandler::process_api_request(Request &request, Response &response){
 
     // Continuously read and send the image in the buffer
     int bytesRead = 0;
-    int bytesCounter = 0;
     do{
         bytesRead = file.readBytes((char*) psram.get_mem_ptr(), READ_FILE_BUFFER_SIZE);
         response.write(psram.get_mem_ptr(), bytesRead);
-        bytesCounter += bytesRead;
     }while (bytesRead > 0);
-    
-
-    Serial.println("Image sent with size: " + String(bytesCounter) + " bytes");
 
     // Free the memory
     psram.destroy();
@@ -143,13 +138,14 @@ void CommsHandler::process_api_request(Request &request, Response &response){
     ##########################################################################
 */
 
+/*
 void despatcher_api_fN(void* pvParameters){
     CommsHandler *comms = (CommsHandler*) pvParameters;
     while(true){
         comms->listen_to_api_clients();
         delay(10);
     }
-}
+}*/
 
 void program_life(){
     Serial.printf("Taking photo %d", ++photoCount);
@@ -255,6 +251,4 @@ void loop() {
         comms.listen_to_api_clients();
         delay(1);
     }
-
-    //delay(CAPTURE_RATE);
 }
