@@ -79,6 +79,8 @@ bool PSRAMHandler::store(const char * data, size_t size){
         Serial.println("Error: PSRAM not allocated");
         return false;
     }
+
+    Serial.println("Occupied PSRAM: " + String(occupiedPSRAM) + " Size: " + String(size) + " Allocated PSRAM: " + String(allocatedPSRAM));
     if ((occupiedPSRAM + size) > allocatedPSRAM) {
         Serial.println("Error: Not enough space in the allocated PSRAM");
         return false;

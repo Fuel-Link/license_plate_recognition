@@ -49,6 +49,7 @@ CommsHandler comms;
 int photoCount = 0;
 long lastImageId = 0;
 PSRAMHandler psram;
+PSRAMHandler psramAPI;
 
 //! Swagger stuff. They are divided into parts because of dinamically setting the correct IP address
 const char * swaggerJSONPart1 = "{\"swagger\":\"2.0\",\"info\":{\"description\":\"This is a sample server Petstore server.\",\"version\":\"1.0.0\",\"title\":\"IoT application\"},\"host\":\"";
@@ -148,61 +149,25 @@ void CommsHandler::process_api_request(Request &request, Response &response){
         response.set("Content-Type", "application/json");
         response.set("Connection", "close");
 
-        const char* ipAddress = WiFi.localIP().toString().c_str();
+        String wifiStr = WiFi.localIP().toString();
+        const char* ipAddress = wifiStr.c_str();
 
-        size_t concatenatedLength = strlen(swaggerJSONPart1) + strlen(swaggerJSONPart2) + strlen(ipAddress) + 1; // +1 for null terminator
-
-        Serial.println("Concatenated length: " + String(concatenatedLength) + " bytes");
-
-        // Allocate memory for the sending buffer
-        if(!psram.allocate(concatenatedLength)){
-            response.sendStatus(500);
-            return;
-        }
-
-        // Concatenate the strings
-        psram.store(swaggerJSONPart1, strlen(swaggerJSONPart1));
-        psram.store(ipAddress, strlen(ipAddress));
-        psram.store(swaggerJSONPart2, strlen(swaggerJSONPart2));
-        //strcpy((char*) psram.get_mem_ptr(), swaggerJSONPart1);
-        //strcpy((char*) psram.get_mem_ptr(), ipAddress);
-        //strcpy((char*) psram.get_mem_ptr(), swaggerJSONPart2);
-
-        response.write(psram.get_mem_ptr(), concatenatedLength);
-
-        // Free the memory
-        psram.destroy();
+        response.write((uint8_t *) swaggerJSONPart1, strlen(swaggerJSONPart1));
+        response.write((uint8_t *) ipAddress, wifiStr.length());
+        response.write((uint8_t *) swaggerJSONPart2, strlen(swaggerJSONPart2));
 
         response.end();
 
     } else if(strcmp(request.path(), DOCS_URL_PATH) == 0){
-        response.set("Content-Type", "application/json");
+        response.set("Content-Type", "text/html");
         response.set("Connection", "close");
 
-        const char* ipAddress = WiFi.localIP().toString().c_str();
+        String wifiStr = WiFi.localIP().toString();
+        const char* ipAddress = wifiStr.c_str();
 
-        size_t concatenatedLength = strlen(swaggerUIPart1) + strlen(swaggerUIPart2) + strlen(ipAddress) + 1; // +1 for null terminator
-
-        Serial.println("Concatenated length: " + String(concatenatedLength) + " bytes");
-
-        // Allocate memory for the sending buffer
-        if(!psram.allocate(concatenatedLength)){
-            response.sendStatus(500);
-            return;
-        }
-
-        // Concatenate the strings
-        psram.store(swaggerUIPart1, strlen(swaggerUIPart1));
-        psram.store(ipAddress, strlen(ipAddress));
-        psram.store(swaggerUIPart2, strlen(swaggerUIPart2));
-        //strcpy((char*) psram.get_mem_ptr(), swaggerUIPart1);
-        //strcpy((char*) psram.get_mem_ptr(), ipAddress);
-        //strcpy((char*) psram.get_mem_ptr(), swaggerUIPart2);
-
-        response.write(psram.get_mem_ptr(), concatenatedLength);
-
-        // Free the memory
-        psram.destroy();
+        response.write((uint8_t *) swaggerUIPart1, strlen(swaggerUIPart1));
+        response.write((uint8_t *) ipAddress, wifiStr.length());
+        response.write((uint8_t *) swaggerUIPart2, strlen(swaggerUIPart2));
 
         response.end();
 
